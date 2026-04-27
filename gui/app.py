@@ -23,6 +23,7 @@ class CipherTab(ctk.CTkFrame):
         self.cipher = cipher_module
         self.input_file_path = None
         self._full_output = ""
+        self._last_mode = "encrypt"
         self._build()
 
     def _build(self):
@@ -142,6 +143,7 @@ class CipherTab(ctk.CTkFrame):
             return
         try:
             fn = self.cipher.encrypt if mode == "encrypt" else self.cipher.decrypt
+            self._last_mode = mode
 
             if self.mode_var.get() == "Text":
                 text = self.input_box.get("1.0", "end-1c")
@@ -192,11 +194,29 @@ class CipherTab(ctk.CTkFrame):
         if not self._full_output:
             messagebox.showwarning("Nothing to Save", "Output is empty.")
             return
-        suggested = suggest_output_path(self.input_file_path) if self.input_file_path else ""
+
+        if self._last_mode == "encrypt":
+            # Encrypted output is always hex text — force .txt
+            base = os.path.splitext(self.input_file_path)[0] if self.input_file_path else "output"
+            initial = os.path.basename(base) + "_encrypted.txt"
+            default_ext = ".txt"
+            filetypes = [("Text files", "*.txt"), ("All files", "*.*")]
+        else:
+            # Decrypted output — restore the original file type
+            # Strip _encrypted suffix and recover original extension if possible
+            base = os.path.splitext(self.input_file_path)[0] if self.input_file_path else "output"
+            base = base.replace("_encrypted", "")
+            orig_ext = os.path.splitext(self.input_file_path)[1] if self.input_file_path else ".txt"
+            if orig_ext.lower() == ".txt":
+                orig_ext = ".txt"
+            initial = os.path.basename(base) + "_decrypted" + orig_ext
+            default_ext = orig_ext
+            filetypes = [("All files", "*.*"), ("Text files", "*.txt")]
+
         path = filedialog.asksaveasfilename(
-            initialfile=os.path.basename(suggested) if suggested else "",
-            defaultextension=".txt",
-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+            initialfile=initial,
+            defaultextension=default_ext,
+            filetypes=filetypes,
         )
         if path:
             write_text(path, self._full_output)
