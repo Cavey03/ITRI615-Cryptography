@@ -20,3 +20,22 @@ def decrypt(ciphertext: str, key: str) -> str:
         raise ValueError("Invalid ciphertext — expected hex-encoded Vernam output.")
     xored = bytes(a ^ b for a, b in zip(data, _key_stream(key, len(data))))
     return xored.decode("utf-8")
+
+
+def encrypt_bytes(data: bytes, key: str) -> str:
+    """Encrypt raw bytes (e.g. binary files) and return hex string."""
+    if not key.strip():
+        raise ValueError("Key cannot be empty.")
+    xored = bytes(a ^ b for a, b in zip(data, _key_stream(key, len(data))))
+    return xored.hex()
+
+
+def decrypt_bytes(ciphertext: str, key: str) -> bytes:
+    """Decrypt hex-encoded Vernam ciphertext back to raw bytes."""
+    if not key.strip():
+        raise ValueError("Key cannot be empty.")
+    try:
+        data = bytes.fromhex(ciphertext.strip())
+    except ValueError:
+        raise ValueError("Invalid ciphertext — expected hex-encoded Vernam output.")
+    return bytes(a ^ b for a, b in zip(data, _key_stream(key, len(data))))

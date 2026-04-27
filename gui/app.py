@@ -4,7 +4,7 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 
 from ciphers import substitution, vigenere, transposition, vernam
-from utils.file_handler import read_bytes, write_text, suggest_output_path
+from utils.file_handler import read_bytes, write_text, write_bytes, suggest_output_path
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -23,6 +23,7 @@ class CipherTab(ctk.CTkFrame):
         self.cipher = cipher_module
         self.input_file_path = None
         self._full_output = ""
+        self._output_bytes = None
         self._last_mode = "encrypt"
         self._build()
 
@@ -158,8 +159,25 @@ class CipherTab(ctk.CTkFrame):
                     messagebox.showwarning("No File", "Please select a file first.")
                     return
                 raw = read_bytes(self.input_file_path)
-                text = raw.decode("utf-8", errors="replace")
-                self._full_output = fn(text, key)
+                self._output_bytes = None
+
+                encrypt_bytes_fn = getattr(self.cipher, "encrypt_bytes", None)
+                decrypt_bytes_fn = getattr(self.cipher, "decrypt_bytes", None)
+
+                if mode == "encrypt" and encrypt_bytes_fn:
+                    self._full_output = encrypt_bytes_fn(raw, key)
+                elif mode == "decrypt" and decrypt_bytes_fn:
+                    hex_str = raw.decode("utf-8", errors="replace")
+                    self._output_bytes = decrypt_bytes_fn(hex_str, key)
+                    size_kb = len(self._output_bytes) / 1024
+                    self._set_output(
+                        f"[File decrypted — {size_kb:.1f} KB]\n"
+                        f"Use Save to write the restored file to disk."
+                    )
+                    return
+                else:
+                    text = raw.decode("utf-8", errors="replace")
+                    self._full_output = fn(text, key)
 
                 # Show a preview only — dumping megabytes into the textbox freezes the UI
                 preview_limit = 500
@@ -191,7 +209,7 @@ class CipherTab(ctk.CTkFrame):
         messagebox.showinfo("Copied", "Output copied to clipboard.")
 
     def _save(self):
-        if not self._full_output:
+        if not self._full_output and self._output_bytes is None:
             messagebox.showwarning("Nothing to Save", "Output is empty.")
             return
 
@@ -219,7 +237,10 @@ class CipherTab(ctk.CTkFrame):
             filetypes=filetypes,
         )
         if path:
-            write_text(path, self._full_output)
+            if self._output_bytes is not None:
+                write_bytes(path, self._output_bytes)
+            else:
+                write_text(path, self._full_output)
             messagebox.showinfo("Saved", f"Saved to {os.path.basename(path)}")
 
 
