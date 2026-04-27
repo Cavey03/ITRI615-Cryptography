@@ -8,7 +8,10 @@ def encrypt(plaintext: str, key: str) -> str:
         raise ValueError("Key cannot be empty.")
 
     key_len = len(key)
-    text = plaintext.replace(" ", "")  # optional: remove spaces
+
+    # ❌ Removed space removal so spaces are preserved
+    text = plaintext
+
     rows = (len(text) + key_len - 1) // key_len
 
     # Pad text if necessary
@@ -33,7 +36,7 @@ def decrypt(ciphertext: str, key: str) -> str:
         raise ValueError("Key cannot be empty.")
 
     key_len = len(key)
-    rows = (len(ciphertext) + key_len - 1) // key_len
+    rows = len(ciphertext) // key_len
 
     order = _get_order(key)
 
@@ -43,13 +46,12 @@ def decrypt(ciphertext: str, key: str) -> str:
     index = 0
     for col in order:
         for row in range(rows):
-            if index < len(ciphertext):
-                matrix[row][col] = ciphertext[index]
-                index += 1
+            matrix[row][col] = ciphertext[index]
+            index += 1
 
     # Read row-wise
     plaintext = ""
     for row in matrix:
         plaintext += "".join(row)
 
-    return plaintext.rstrip('X')  # remove padding
+    return plaintext.rstrip('X')
