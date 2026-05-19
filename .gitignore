@@ -29,3 +29,13 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Generated docs
+*.docx
+~$*
+
+# Local agent / tooling
+.claude/
+
+# Project brief (kept local)
+ITRI615 2026 Project Cryptography.pdf

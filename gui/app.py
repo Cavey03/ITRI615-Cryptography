@@ -3,8 +3,8 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
-from ciphers import substitution, vigenere, transposition, vernam, playfair
-from utils.file_handler import read_bytes, write_text, write_bytes, suggest_output_path
+from ciphers import substitution, vigenere, transposition, vernam, caesar
+from utils.file_handler import read_bytes, write_text, write_bytes
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -14,7 +14,7 @@ CIPHERS = {
     "Vigenère": vigenere,
     "Transposition": transposition,
     "Vernam": vernam,
-    "Playfair": playfair,
+    "Caesar": caesar,
 }
 
 

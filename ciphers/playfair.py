@@ -65,6 +65,8 @@ def decrypt(ciphertext: str, key: str) -> str:
     square = _build_square(key)
     text = ciphertext.upper().replace('J', 'I')
     text = ''.join(c for c in text if c.isalpha())
+    if len(text) % 2 != 0:
+        raise ValueError("Invalid Playfair ciphertext — must contain an even number of letters.")
     result = []
     for i in range(0, len(text), 2):
         a, b = text[i], text[i + 1]

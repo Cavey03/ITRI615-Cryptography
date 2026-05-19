@@ -9,7 +9,6 @@ def encrypt(plaintext: str, key: str) -> str:
 
     key_len = len(key)
 
-    # ❌ Removed space removal so spaces are preserved
     text = plaintext
 
     rows = (len(text) + key_len - 1) // key_len
